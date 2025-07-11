@@ -1,0 +1,12 @@
+tmux_session_name: mngr
+editor: nvim
+claude_command: claude
+ccusage_command: ccusage blocks --live -t 150000
+pane_heights:
+  top: 80
+  bottom: 20
+auto_save_interval: 300
+monitoring:
+  track_deep_work: true
+  track_habits: true
+  track_todoist: true

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "todoist-mcp": {
+      "command": "node",
+      "args": [
+        "/home/bpeeters/MEGA/repo/mcp/todoist-mcp/build/index.js"
+      ],
+      "env": {
+        "TODOIST_API_KEY": "1d053578c2e7869bcd60a0a9894d76e2fafb9b2e"
+      }
+    }
+  }
+}

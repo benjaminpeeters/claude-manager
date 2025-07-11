@@ -1,0 +1,8 @@
+#!/bin/bash
+# Claude Manager launcher script
+
+# Activate Python environment if needed
+# source /path/to/venv/bin/activate
+
+# Run the Claude Manager
+exec python3 /home/bpeeters/MEGA/manager/claude_manager.py "$@"
