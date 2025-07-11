@@ -7,38 +7,32 @@
 remind:
   name: REMIND Model Development
   category: PIK
-  directory: /home/bpeeters/remind
-  todoist_project: "PIK Research"
+  directory: /home/bpeeters/MEGA/repo/
+  todoist_project: "PIK"
 
 msg:
   name: MSG Model Development  
   category: PIK
-  directory: /home/bpeeters/msg
+  directory: /home/bpeeters/MEGA/repo/R/msgm
   todoist_project: "PIK Research"
 
 madrat:
   name: MadRat Data Processing
   category: PIK
-  directory: /home/bpeeters/madrat
+  directory: /home/bpeeters/MEGA/repo/R/
   todoist_project: "PIK Research"
 
-damage_capital_pik:
-  name: Direct Damage on Capital (PIK Research)
-  category: PIK
-  directory: /home/bpeeters/damage_capital
+damage_capital:
+  name: Direct Damage on Capital
+  category: PIK,Publications
+  directory: /home/bpeeters/MEGA/pub/papers/p5_pik_gcr_remind_damage_capital
   todoist_project: "PIK Research"
 
 # Publications Category  
-damage_capital_pub:
-  name: Direct Damage on Capital (Publication)
-  category: Publications
-  directory: /home/bpeeters/damage_capital
-  todoist_project: "Publications"
-
 cyclical_flows:
   name: Cyclical Financial Flows Paper
   category: Publications
-  directory: /home/bpeeters/cyclical_flows
+  directory: /home/bpeeters/MEGA/pub/papers/p1_jmp_clif
   todoist_project: "Publications"
 
 interest_spillovers:

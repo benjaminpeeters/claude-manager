@@ -76,13 +76,18 @@ class CategorySelectorApp(App):
         self.current_category = None
     
     def _get_categories(self) -> Dict[str, List[str]]:
-        """Group projects by category"""
+        """Group projects by category (supports comma-separated categories)"""
         categories = {}
         for project_key, project in self.projects.items():
-            category = project.get("category", "General")
-            if category not in categories:
-                categories[category] = []
-            categories[category].append(project_key)
+            category_str = project.get("category", "General")
+            
+            # Handle comma-separated categories
+            project_categories = [cat.strip() for cat in category_str.split(",")]
+            
+            for category in project_categories:
+                if category not in categories:
+                    categories[category] = []
+                categories[category].append(project_key)
         return categories
     
     def compose(self) -> ComposeResult:

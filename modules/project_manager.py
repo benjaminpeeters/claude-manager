@@ -84,10 +84,12 @@ class ProjectManager:
             print(f"  {status} {key}: {project.get('name', 'Unknown')}")
     
     def get_project_category(self, project_key: str) -> str:
-        """Get category for a project"""
+        """Get primary category for a project (first in comma-separated list)"""
         if project_key not in self.projects:
             return "General"
-        return self.projects[project_key].get("category", "General")
+        category_str = self.projects[project_key].get("category", "General")
+        # Return first category if comma-separated
+        return category_str.split(",")[0].strip()
     
     def get_project_todoist(self, project_key: str) -> str:
         """Get Todoist project for a project"""

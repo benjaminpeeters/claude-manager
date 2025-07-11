@@ -16,9 +16,9 @@ Project summary for Social Life & Relationships.
 
 ## Context Files
 
-- `notes/monitoring/habits.md`
-- `notes/life/goals.md`
-- `notes/personal/notes.md`
+@notes/monitoring/habits.md
+@notes/life/goals.md  
+@notes/personal/notes.md
 
 ## Notes
 
