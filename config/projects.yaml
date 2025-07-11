@@ -41,7 +41,7 @@ interest_spillovers:
   directory: /home/bpeeters/interest_spillovers
   todoist_project: "Publications"
 
-crises_book:
+book_financial_crises_sp:
   name: Book on Financial Crises
   category: Publications
   directory: /home/bpeeters/crises_book

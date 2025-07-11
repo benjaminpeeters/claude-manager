@@ -1,4 +1,4 @@
-# Social Life & Relationships - Summary
+# Social Life & Relationships
 
 ## Overview
 
@@ -10,9 +10,6 @@ Project summary for Social Life & Relationships.
 - **Directory**: `/home/bpeeters/MEGA`
 - **Todoist Project**: Personal Life
 
-## Key Information
-
-<!-- Add key information about this project here -->
 
 ## Context Files
 
@@ -20,10 +17,3 @@ Project summary for Social Life & Relationships.
 @notes/life/goals.md  
 @notes/personal/notes.md
 
-## Notes
-
-<!-- Add project-specific notes here -->
-
----
-*This file serves as the main summary and context guide for Claude Manager.*
-*It is automatically loaded when this project is selected.*

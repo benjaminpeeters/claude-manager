@@ -1,13 +1,13 @@
-# History of Capitalist Globalization Book
+# Book on Financial Crises
 
 ## Overview
 
-Project summary for History of Capitalist Globalization Book.
+Project summary for Book on Financial Crises.
 
 ## Project Details
 
 - **Category**: Publications
-- **Directory**: `/home/bpeeters/globalization_book`
+- **Directory**: `/home/bpeeters/crises_book`
 - **Todoist Project**: Publications
 
 
