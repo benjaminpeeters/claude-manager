@@ -38,14 +38,12 @@ def build_claude_command(settings: Dict, project: Dict, project_key: str = None)
     intro_msg += f"Todoist project: {todoist_project}."
     message_parts.append(intro_msg)
     
-    # Add general Claude Manager instructions
-    manager_claude_md = Path("/home/bpeeters/MEGA/manager/CLAUDE.md")
-    if manager_claude_md.exists():
-        claude_content = manager_claude_md.read_text()
-        # Remove the placeholder section since we're including context directly
-        claude_content = claude_content.replace("---\n\n# Project Context\n\n@{{CONTEXT_FILE}}", "")
-        message_parts.append("\n=== Claude Manager Instructions ===")
-        message_parts.append(claude_content)
+    # Add general Claude Manager guidelines
+    general_guidelines = Path("/home/bpeeters/MEGA/manager/config/general_guidelines.md")
+    if general_guidelines.exists():
+        guidelines_content = general_guidelines.read_text()
+        message_parts.append("\n=== Claude Manager Guidelines ===")
+        message_parts.append(guidelines_content)
     
     # Add project-specific context
     context_file = Path("/home/bpeeters/MEGA/manager/config/contexts") / f"context_{project_key}.md"
