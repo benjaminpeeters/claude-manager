@@ -177,18 +177,13 @@ class ClaudeManager:
         project = self.project_manager.get_project_info(project_key)
         print(f"\n✨ Starting {project['name']} in existing session...\n")
         
-        # Create project window in existing session
+        # Create project window in existing session (includes moving to rightmost position)
         project_target = self.tmux_manager.create_project_window(project, project_key)
         if not project_target:
             print("Failed to create project window.")
             return
         
-        print(f"✨ Project window created!")
-        
-        # Move the new project window to the rightmost position
-        print("Moving project window to rightmost position...")
-        if not self.tmux_manager.move_window_to_rightmost(project_target):
-            print("Warning: Could not move window to rightmost position")
+        print(f"✨ Project window created and positioned!")
         
         # Attach to session and switch to new project window
         try:

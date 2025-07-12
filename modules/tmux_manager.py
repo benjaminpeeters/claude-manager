@@ -37,6 +37,7 @@ class TmuxManager:
         ], log_success=False)
         return result.returncode == 0
     
+    
     def get_unique_window_name(self, project_key: str) -> str:
         """Generate a unique window name with incremental numbering if needed"""
         base_name = f"cc-mngr-{project_key}"
@@ -65,55 +66,99 @@ class TmuxManager:
     
     def _create_window_safe(self, window_name: str, session_target: str = None, insert_left: bool = False) -> Optional[str]:
         """Safely create a window and return reliable target string"""
+        from .debug_logger import log_debug
+        
+        log_debug(f"Starting _create_window_safe: window_name={window_name}, session_target={session_target}, insert_left={insert_left}", "CREATE_WINDOW_SAFE")
+        
         if session_target is None:
             session_target = self.session_name
-            
-        # Create window and get index for reliable targeting
-        if insert_left:
-            # Use -b flag to insert before the first window (leftmost position)
-            target_args = ["-b", "-t", f"{session_target}:^"]
-            print(f"   → Using left insertion: tmux new-window -b -t {session_target}:^")
+            log_debug(f"Using default session_target: {session_target}", "CREATE_WINDOW_SAFE")
         else:
-            # Use -a flag to append after last window (default behavior)
-            target_args = ["-a", "-t", session_target]
-            print(f"   → Using right append: tmux new-window -a -t {session_target}")
+            log_debug(f"Using provided session_target: {session_target}", "CREATE_WINDOW_SAFE")
+            
+        # Verify target session exists
+        session_check = self._run_tmux_command([
+            "tmux", "has-session", "-t", session_target
+        ], log_success=False)
+        
+        if session_check.returncode != 0:
+            log_debug(f"Target session {session_target} does not exist!", "CREATE_WINDOW_SAFE")
+            print(f"Error: Target session '{session_target}' does not exist")
+            return None
+        else:
+            log_debug(f"Target session {session_target} exists", "CREATE_WINDOW_SAFE")
+        
+        # Find available window index
+        if insert_left:
+            # For left insertion, use index 1 and let tmux handle shifting
+            target_index = 1
+            print(f"   → Using left insertion at index {target_index}")
+            log_debug(f"Using left insertion at index {target_index}", "CREATE_WINDOW_SAFE")
+        else:
+            # For right positioning, find next available high index
+            target_index = self._find_next_available_index(session_target, start_index=1001)
+            print(f"   → Using right positioning at index {target_index}")
+            log_debug(f"Using right positioning at index {target_index}", "CREATE_WINDOW_SAFE")
+        
+        # Create window directly at specific index
+        window_target = f"{session_target}:{target_index}"
+        log_debug(f"Creating window at {window_target}", "CREATE_WINDOW_SAFE")
         
         result = self._run_tmux_command([
-            "tmux", "new-window"] + target_args + [
+            "tmux", "new-window", "-t", window_target,
             "-n", window_name, "-c", "/home/bpeeters/MEGA/manager",
-            "-d", "-P", "-F", "#{window_index}"
+            "-d", "-P", "-F", "#{window_id}"
         ])
         
         if result.returncode != 0:
-            print(f"Error creating named window '{window_name}': {result.stderr}")
-            # Try without name as fallback
-            result = self._run_tmux_command([
-                "tmux", "new-window"] + target_args + [
-                "-c", "/home/bpeeters/MEGA/manager", "-d",
-                "-P", "-F", "#{window_index}"
-            ])
-            if result.returncode != 0:
-                print(f"Failed to create window: {result.stderr}")
-                return None
-        
-        window_index = result.stdout.strip()
-        if not window_index:
-            print("Warning: Could not determine window index")
+            log_debug(f"Window creation failed: {result.stderr}", "CREATE_WINDOW_SAFE")
+            print(f"Failed to create window: {result.stderr}")
             return None
-            
-        # Use index-based targeting for reliability
-        window_target = f"{session_target}:{window_index}"
         
-        # Verify window exists
+        window_id = result.stdout.strip()
+        log_debug(f"Window creation successful: ID={window_id}, target={window_target}", "CREATE_WINDOW_SAFE")
+        
+        # Verify window exists and has correct name
         verify_result = self._run_tmux_command([
             "tmux", "display-message", "-t", window_target, "-p", "#{window_name}"
         ], log_success=False)
         
         if verify_result.returncode != 0:
-            print(f"Warning: Could not verify window {window_target}")
+            log_debug(f"Window verification failed: {verify_result.stderr}", "CREATE_WINDOW_SAFE")
+            print(f"Warning: Cannot access created window {window_target}")
+            return None
+        
+        verified_name = verify_result.stdout.strip()
+        if verified_name != window_name:
+            log_debug(f"Window name mismatch! Expected: {window_name}, Got: {verified_name}", "CREATE_WINDOW_SAFE")
+            print(f"Warning: Window name mismatch - expected '{window_name}', got '{verified_name}'")
             return None
             
+        log_debug(f"Window verification successful: {verified_name} at {window_target}", "CREATE_WINDOW_SAFE")
         return window_target
+    
+    def _find_next_available_index(self, session_target: str, start_index: int = 1001) -> int:
+        """Find the next available window index starting from start_index"""
+        from .debug_logger import log_debug
+        
+        # Get current window indices
+        result = self._run_tmux_command([
+            "tmux", "list-windows", "-t", session_target, "-F", "#{window_index}"
+        ], log_success=False)
+        
+        existing_indices = set()
+        if result.returncode == 0 and result.stdout.strip():
+            existing_indices = {int(idx) for idx in result.stdout.strip().split('\n') if idx.isdigit()}
+        
+        log_debug(f"Existing window indices in {session_target}: {sorted(existing_indices)}", "FIND_INDEX")
+        
+        # Find first available index starting from start_index
+        current_index = start_index
+        while current_index in existing_indices:
+            current_index += 1
+        
+        log_debug(f"Next available index: {current_index}", "FIND_INDEX")
+        return current_index
 
     def _verify_window_ready(self, window_target: str, max_retries: int = 5) -> bool:
         """Verify that a window is ready for operations"""
@@ -138,7 +183,7 @@ class TmuxManager:
             # Add a new window to existing session
             window_name = self.get_unique_window_name(project_key)
             print(f"Creating new window '{window_name}' in existing session '{self.session_name}'...")
-            return self._create_window_safe(window_name, insert_left=False)
+            return self._create_window_safe(window_name, session_target=self.session_name, insert_left=False)
         else:
             # Create new session with named first window
             window_name = self.get_unique_window_name(project_key)
@@ -305,33 +350,59 @@ class TmuxManager:
     
     def create_project_window(self, project: Dict, project_key: str) -> Optional[str]:
         """Create a project window with task file and claude instance"""
+        from .debug_logger import log_debug
+        
+        log_debug(f"Starting create_project_window for {project_key}", "CREATE_PROJECT_WINDOW")
+        
         if not self.session_exists():
+            log_debug("Session doesn't exist, aborting", "CREATE_PROJECT_WINDOW")
             print("Error: mngr session doesn't exist")
             return None
             
+        log_debug(f"Session exists, proceeding with window creation (session_name={self.session_name})", "CREATE_PROJECT_WINDOW")
         window_name = f"cc-mngr-{project_key}"
         print(f"Creating project window '{window_name}'...")
         print(f"   → Using right-append positioning for new project window")
         
+        log_debug(f"About to call _create_window_safe with name={window_name}, session={self.session_name}", "CREATE_PROJECT_WINDOW")
         # Use the safe window creation method with explicit right-append
-        window_target = self._create_window_safe(window_name, insert_left=False)
+        window_target = self._create_window_safe(window_name, session_target=self.session_name, insert_left=False)
         if not window_target:
+            log_debug("Window creation failed", "CREATE_PROJECT_WINDOW")
             self.debug_logger.log_window_creation("project", window_name, False, "Failed to create window")
             return None
             
+        log_debug(f"Window created successfully: {window_target}", "CREATE_PROJECT_WINDOW")
         print(f"Successfully created window: {window_target}")
         self.debug_logger.log_window_creation("project", window_name, True)
         
+        # Move the window to rightmost position immediately after creation
+        log_debug("About to move window to rightmost position", "CREATE_PROJECT_WINDOW")
+        print("Moving project window to rightmost position...")
+        moved_target = self.move_window_to_rightmost_and_get_target(window_target)
+        if moved_target:
+            log_debug(f"Window moved successfully: {moved_target}", "CREATE_PROJECT_WINDOW")
+            window_target = moved_target
+            print(f"   → Window target updated to: {window_target}")
+        else:
+            log_debug("Window moving failed", "CREATE_PROJECT_WINDOW")
+            print("Warning: Could not move window to rightmost position, continuing with original target")
+        
         # Verify window is ready before proceeding
+        log_debug("Verifying window readiness", "CREATE_PROJECT_WINDOW")
         if not self._verify_window_ready(window_target):
+            log_debug("Window not ready for operations", "CREATE_PROJECT_WINDOW")
             print("Warning: Window not ready for operations")
             return None
         
+        log_debug("Window ready, proceeding with layout setup", "CREATE_PROJECT_WINDOW")
         # Setup two-pane layout (vertical split)
         if not self.setup_project_window_layout(window_target, project, project_key):
+            log_debug("Layout setup failed", "CREATE_PROJECT_WINDOW")
             print("Failed to setup project window layout")
             return None
         
+        log_debug(f"create_project_window completed successfully: {window_target}", "CREATE_PROJECT_WINDOW")
         return window_target
     
     def setup_project_window_layout(self, window_target: str, project: Dict, project_key: str):
@@ -356,33 +427,94 @@ class TmuxManager:
     
     def move_current_window_to_rightmost(self) -> bool:
         """Move the current window to the rightmost position in the session"""
-        try:
-            print(f"   → Moving current window to rightmost position...")
-            # Use a high index number to ensure it goes to the end
-            result = subprocess.run([
-                "tmux", "move-window", "-t", "999"
-            ], capture_output=True, text=True, check=True)
-            print(f"   ✅ Window moved to rightmost position")
-            return True
-        except subprocess.CalledProcessError as e:
-            print(f"   ⚠️  Error moving window to rightmost position: {e.stderr}")
-            return False
+        print(f"   → Moving current window to rightmost position...")
+        
+        # Try multiple high indices in case some are in use
+        for target_index in [999, 1000, 1001, 1002, 1003]:
+            try:
+                result = subprocess.run([
+                    "tmux", "move-window", "-t", str(target_index)
+                ], capture_output=True, text=True, check=True)
+                print(f"   ✅ Window moved to rightmost position (index {target_index})")
+                return True
+            except subprocess.CalledProcessError as e:
+                if "index in use" in e.stderr:
+                    # Try next index
+                    continue
+                else:
+                    # Other error, log and fail
+                    print(f"   ⚠️  Error moving window: {e.stderr}")
+                    return False
+        
+        # If all indices failed
+        print(f"   ⚠️  Could not find free index for window movement")
+        return False
     
     def move_window_to_rightmost(self, window_target: str) -> bool:
         """Move a specific window to the rightmost position in the session"""
-        try:
-            print(f"   → Moving window {window_target} to rightmost position...")
-            # Use a high index number to ensure it goes to the end
-            # Extract session name from window target (format: session:window)
-            session_name = window_target.split(':')[0] if ':' in window_target else self.session_name
-            result = subprocess.run([
-                "tmux", "move-window", "-s", window_target, "-t", f"{session_name}:999"
-            ], capture_output=True, text=True, check=True)
-            print(f"   ✅ Window moved to rightmost position")
-            return True
-        except subprocess.CalledProcessError as e:
-            print(f"   ⚠️  Error moving window to rightmost position: {e.stderr}")
-            return False
+        print(f"   → Moving window {window_target} to rightmost position...")
+        
+        # Extract session name from window target (format: session:window)
+        session_name = window_target.split(':')[0] if ':' in window_target else self.session_name
+        
+        # Try multiple high indices in case some are in use
+        for target_index in [999, 1000, 1001, 1002, 1003]:
+            try:
+                result = subprocess.run([
+                    "tmux", "move-window", "-s", window_target, "-t", f"{session_name}:{target_index}"
+                ], capture_output=True, text=True, check=True)
+                print(f"   ✅ Window moved to rightmost position (index {target_index})")
+                return True
+            except subprocess.CalledProcessError as e:
+                if "index in use" in e.stderr:
+                    # Try next index
+                    continue
+                else:
+                    # Other error, log and fail
+                    print(f"   ⚠️  Error moving window: {e.stderr}")
+                    return False
+        
+        # If all indices failed
+        print(f"   ⚠️  Could not find free index for window movement")
+        return False
+    
+    def move_window_to_rightmost_and_get_target(self, window_target: str) -> Optional[str]:
+        """Move a specific window to the rightmost position and return the new target"""
+        from .debug_logger import log_debug
+        
+        log_debug(f"Starting move_window_to_rightmost_and_get_target for {window_target}", "MOVE_WINDOW")
+        print(f"   → Moving window {window_target} to rightmost position...")
+        
+        # Extract session name from window target (format: session:window)
+        session_name = window_target.split(':')[0] if ':' in window_target else self.session_name
+        log_debug(f"Extracted session name: {session_name}", "MOVE_WINDOW")
+        
+        # Try multiple high indices in case some are in use
+        for target_index in [999, 1000, 1001, 1002, 1003]:
+            log_debug(f"Trying to move to index {target_index}", "MOVE_WINDOW")
+            try:
+                result = subprocess.run([
+                    "tmux", "move-window", "-s", window_target, "-t", f"{session_name}:{target_index}"
+                ], capture_output=True, text=True, check=True)
+                new_target = f"{session_name}:{target_index}"
+                log_debug(f"Window moved successfully to {new_target}", "MOVE_WINDOW")
+                print(f"   ✅ Window moved to rightmost position: {new_target}")
+                return new_target
+            except subprocess.CalledProcessError as e:
+                if "index in use" in e.stderr:
+                    log_debug(f"Index {target_index} in use, trying next", "MOVE_WINDOW")
+                    # Try next index
+                    continue
+                else:
+                    # Other error, log and fail
+                    log_debug(f"Move window error: {e.stderr}", "MOVE_WINDOW")
+                    print(f"   ⚠️  Error moving window: {e.stderr}")
+                    return None
+        
+        # If all indices failed
+        log_debug("All indices failed for window movement", "MOVE_WINDOW")
+        print(f"   ⚠️  Could not find free index for window movement")
+        return None
     
     def clear_current_window(self):
         """Clear all panes in current window and reset to single pane"""
@@ -484,16 +616,10 @@ class TmuxManager:
             debug_logger.log("Getting window target", "TRANSFORM")
             
             try:
+                # Always use index-based targeting for reliability
                 result = self._run_tmux_command([
-                    "tmux", "display-message", "-p", "#{session_name}:#{window_name}"
+                    "tmux", "display-message", "-p", "#{session_name}:#{window_index}"
                 ], log_success=False)
-                
-                if result.returncode != 0:
-                    debug_logger.log("Window name targeting failed, trying index", "TRANSFORM")
-                    # Fallback to index-based targeting
-                    result = self._run_tmux_command([
-                        "tmux", "display-message", "-p", "#{session_name}:#{window_index}"
-                    ], log_success=False)
                 
                 if result.returncode != 0:
                     debug_logger.log("Both targeting methods failed", "ERROR", {
