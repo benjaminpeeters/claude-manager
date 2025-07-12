@@ -121,40 +121,31 @@ class ClaudeManager:
         # Create new session (this will be completely new)
         self.tmux_manager.session_name = self.settings["tmux_session_name"]
         
-        # Step 1: Create new session with temporary first window
-        print("Creating new mngr session...")
+        # Step 1: Create new session directly with ccusage as the first window
+        print("Creating new mngr session with ccusage window...")
         import subprocess
         result = subprocess.run([
             "tmux", "new-session", "-d", "-s", self.settings["tmux_session_name"],
-            "-c", "/home/bpeeters/MEGA/manager"
+            "-n", "ccusage", "-c", "/home/bpeeters/MEGA/manager",
+            self.settings["ccusage_command"]
         ], capture_output=True, text=True)
         
         if result.returncode != 0:
             print(f"Failed to create session: {result.stderr}")
             return
         
-        # Step 2: Create ccusage window (first window, will be index 1)
-        print("Creating ccusage window...")
-        ccusage_target = self.tmux_manager.create_ccusage_window()
-        if not ccusage_target:
-            print("Warning: Failed to create ccusage window")
-        
-        # Step 3: Create log window (second window, will be index 2)
+        # Step 2: Create log window (will be index 1)
         print("Creating log window...")
         log_target = self.tmux_manager.create_log_window()
         if not log_target:
             print("Warning: Failed to create log window")
         
-        # Step 4: Create project window (third window, will be index 3)
+        # Step 3: Create project window (will be index 2)
         print("Creating project window...")
         project_target = self.tmux_manager.create_project_window(project, project_key)
         if not project_target:
             print("Failed to create project window.")
             return
-        
-        # Step 5: Remove the initial temporary window (index 0) - this will shift all indices down by 1
-        # So final order will be: ccusage (0), log (1), project (2)
-        subprocess.run(["tmux", "kill-window", "-t", f"{self.settings['tmux_session_name']}:0"])
         
         print(f"✨ Claude Manager setup complete!")
         
@@ -193,6 +184,11 @@ class ClaudeManager:
             return
         
         print(f"✨ Project window created!")
+        
+        # Move the new project window to the rightmost position
+        print("Moving project window to rightmost position...")
+        if not self.tmux_manager.move_window_to_rightmost(project_target):
+            print("Warning: Could not move window to rightmost position")
         
         # Attach to session and switch to new project window
         try:

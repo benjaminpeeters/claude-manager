@@ -72,9 +72,11 @@ class TmuxManager:
         if insert_left:
             # Use -b flag to insert before the first window (leftmost position)
             target_args = ["-b", "-t", f"{session_target}:^"]
+            print(f"   → Using left insertion: tmux new-window -b -t {session_target}:^")
         else:
             # Use -a flag to append after last window (default behavior)
             target_args = ["-a", "-t", session_target]
+            print(f"   → Using right append: tmux new-window -a -t {session_target}")
         
         result = self._run_tmux_command([
             "tmux", "new-window"] + target_args + [
@@ -136,7 +138,7 @@ class TmuxManager:
             # Add a new window to existing session
             window_name = self.get_unique_window_name(project_key)
             print(f"Creating new window '{window_name}' in existing session '{self.session_name}'...")
-            return self._create_window_safe(window_name, insert_left=True)
+            return self._create_window_safe(window_name, insert_left=False)
         else:
             # Create new session with named first window
             window_name = self.get_unique_window_name(project_key)
@@ -309,9 +311,10 @@ class TmuxManager:
             
         window_name = f"cc-mngr-{project_key}"
         print(f"Creating project window '{window_name}'...")
+        print(f"   → Using right-append positioning for new project window")
         
-        # Use the safe window creation method
-        window_target = self._create_window_safe(window_name)
+        # Use the safe window creation method with explicit right-append
+        window_target = self._create_window_safe(window_name, insert_left=False)
         if not window_target:
             self.debug_logger.log_window_creation("project", window_name, False, "Failed to create window")
             return None
@@ -349,6 +352,36 @@ class TmuxManager:
             return True
         except subprocess.CalledProcessError as e:
             print(f"Error renaming window: {e.stderr}")
+            return False
+    
+    def move_current_window_to_rightmost(self) -> bool:
+        """Move the current window to the rightmost position in the session"""
+        try:
+            print(f"   → Moving current window to rightmost position...")
+            # Use a high index number to ensure it goes to the end
+            result = subprocess.run([
+                "tmux", "move-window", "-t", "999"
+            ], capture_output=True, text=True, check=True)
+            print(f"   ✅ Window moved to rightmost position")
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"   ⚠️  Error moving window to rightmost position: {e.stderr}")
+            return False
+    
+    def move_window_to_rightmost(self, window_target: str) -> bool:
+        """Move a specific window to the rightmost position in the session"""
+        try:
+            print(f"   → Moving window {window_target} to rightmost position...")
+            # Use a high index number to ensure it goes to the end
+            # Extract session name from window target (format: session:window)
+            session_name = window_target.split(':')[0] if ':' in window_target else self.session_name
+            result = subprocess.run([
+                "tmux", "move-window", "-s", window_target, "-t", f"{session_name}:999"
+            ], capture_output=True, text=True, check=True)
+            print(f"   ✅ Window moved to rightmost position")
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"   ⚠️  Error moving window to rightmost position: {e.stderr}")
             return False
     
     def clear_current_window(self):
@@ -488,6 +521,13 @@ class TmuxManager:
                     if success:
                         debug_logger.log("Project layout setup completed", "TRANSFORM")
                         print(f"   ✅ Project layout created successfully")
+                        
+                        # Move the window to the rightmost position
+                        print(f"   → Positioning window at rightmost location...")
+                        if self.move_window_to_rightmost(window_target):
+                            debug_logger.log("Window moved to rightmost position", "TRANSFORM")
+                        else:
+                            debug_logger.log("Failed to move window to rightmost position", "WARNING")
                     else:
                         debug_logger.log("Project layout setup failed", "ERROR")
                         print(f"   ❌ Error setting up layout")
