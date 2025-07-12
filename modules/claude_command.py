@@ -22,46 +22,53 @@ def build_claude_command(settings: Dict, project: Dict, project_key: str = None)
     else:
         print(f"Warning: MCP config file not found: {mcp_config_file}")
     
-    # Build the message content
-    message_parts = []
+    # Add project directory with validation
+    project_dir = project.get("directory")
+    if project_dir:
+        project_dir_path = Path(project_dir)
+        if project_dir_path.exists() and project_dir_path.is_dir():
+            cmd_parts.append(f'--add-dir "{project_dir}"')
+        else:
+            print(f"Warning: Project directory does not exist: {project_dir}")
+            print(f"Skipping --add-dir flag for non-existent directory")
     
-    # Add project intro
+    # Build system prompt from template
+    system_prompt = _build_system_prompt_from_template(project, project_key)
+    
+    # Add the system prompt
+    cmd_parts.append(f'--append-system-prompt "{system_prompt}"')
+    
+    return " ".join(cmd_parts)
+
+
+def _build_system_prompt_from_template(project: Dict, project_key: str = None) -> str:
+    """Build system prompt content from template file"""
+    # Get project details
     if not project_key:
         project_key = project.get("key", "unknown")
     
-    category = project.get('category', 'General')
-    todoist_project = project.get('todoist_project', 'Inbox')
+    # Load system prompt template
+    prompt_file = Path("/home/bpeeters/MEGA/manager/config/system_prompt_template.md")
+    if not prompt_file.exists():
+        return f"System prompt template file not found: {prompt_file}"
     
-    intro_msg = f"You are now in {project['name']} mode. "
-    intro_msg += f"Category: {category}. "
-    intro_msg += f"Working directory: {project['directory']}. "
-    intro_msg += f"Todoist project: {todoist_project}."
-    message_parts.append(intro_msg)
+    template = prompt_file.read_text()
     
-    # Add general Claude Manager guidelines
-    general_guidelines = Path("/home/bpeeters/MEGA/manager/config/general_guidelines.md")
-    if general_guidelines.exists():
-        guidelines_content = general_guidelines.read_text()
-        message_parts.append("\n=== Claude Manager Guidelines ===")
-        message_parts.append(guidelines_content)
-    
-    # Add project-specific context
+    # Load project context
     context_file = Path("/home/bpeeters/MEGA/manager/config/contexts") / f"context_{project_key}.md"
     if context_file.exists():
         context_content = context_file.read_text()
-        message_parts.append("\n=== Project Context ===")
-        message_parts.append(context_content)
     else:
-        message_parts.append(f"\n=== Project Context ===")
-        message_parts.append(f"Context file not found: {context_file}")
+        context_content = f"Context file not found: {context_file}"
     
-    # Combine all message parts
-    full_message = "\n".join(message_parts)
-    
-    # Add the message to command
-    cmd_parts.append(f'"{full_message}"')
-    
-    return " ".join(cmd_parts)
+    # Fill template with project data
+    return template.format(
+        project_name=project['name'],
+        category=project.get('category', 'General'),
+        directory=project['directory'],
+        todoist_project=project.get('todoist_project', 'Inbox'),
+        context_content=context_content
+    )
 
 
 def validate_mcp_servers(mcp_servers: List[str]) -> List[str]:

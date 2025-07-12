@@ -13,7 +13,5 @@ Project summary for Claude Manager Development.
 
 ## Context Files
 
-@README.md
-@docs/usage.md
-@notes/development.md
+@CLAUDE.md
 

@@ -20,6 +20,9 @@ class ProjectManager:
         except ImportError:
             print("Warning: Textual not available, falling back to number selection")
             return self._fallback_select_project()
+        except Exception as e:
+            print(f"Warning: Textual UI failed ({e}), falling back to number selection")
+            return self._fallback_select_project()
     
     def _fallback_select_project(self) -> Optional[str]:
         """Fallback project selection using numbers (original method)"""

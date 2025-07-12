@@ -8,113 +8,113 @@ remind:
   name: REMIND Model Development
   category: PIK
   directory: /home/bpeeters/MEGA/repo/
-  todoist_project: "PIK"
+  todoist_project: "pik"
 
 msg:
   name: MSG Model Development  
   category: PIK
   directory: /home/bpeeters/MEGA/repo/R/msgm
-  todoist_project: "PIK Research"
+  todoist_project: "pik"
 
 madrat:
   name: MadRat Data Processing
   category: PIK
   directory: /home/bpeeters/MEGA/repo/R/
-  todoist_project: "PIK Research"
+  todoist_project: "pik"
 
 damage_capital:
   name: Direct Damage on Capital
   category: PIK,Publications
   directory: /home/bpeeters/MEGA/pub/papers/p5_pik_gcr_remind_damage_capital
-  todoist_project: "PIK Research"
+  todoist_project: "pik"
 
 # Publications Category  
 cyclical_flows:
   name: Cyclical Financial Flows Paper
   category: Publications
   directory: /home/bpeeters/MEGA/pub/papers/p1_jmp_clif
-  todoist_project: "Publications"
+  todoist_project: "research"
 
 interest_spillovers:
   name: Interest Rate Spillovers Paper
   category: Publications
   directory: /home/bpeeters/interest_spillovers
-  todoist_project: "Publications"
+  todoist_project: "research"
 
 book_financial_crises_sp:
   name: Book on Financial Crises
   category: Publications
-  directory: /home/bpeeters/crises_book
-  todoist_project: "Publications"
+  directory: /home/bpeeters/MEGA/pub/books/b2_finCy/
+  todoist_project: "book"
 
 globalization_book:
   name: History of Capitalist Globalization Book
   category: Publications
   directory: /home/bpeeters/globalization_book
-  todoist_project: "Publications"
+  todoist_project: "book"
 
 # Projects Category
 scibatoo:
   name: Scibatoo Platform
   category: Projects
   directory: /home/bpeeters/scibatoo
-  todoist_project: "Side Projects"
+  todoist_project: "scibatoo"
 
 international_podcast:
   name: International Podcast
   category: Projects
   directory: /home/bpeeters/podcast
-  todoist_project: "Side Projects"
+  todoist_project: "podcast"
 
 # Flows Category
 claude_manager:
   name: Claude Manager Development
   category: Flows
   directory: /home/bpeeters/MEGA/manager
-  todoist_project: "Productivity Tools"
+  todoist_project: "flow"
 
 claude_quick:
   name: Claude Quick Tools
   category: Flows
   directory: /home/bpeeters/claude_quick
-  todoist_project: "Productivity Tools"
+  todoist_project: "flow"
 
 stopbrowsing:
   name: Stop Browsing Tool
   category: Flows
   directory: /home/bpeeters/stopbrowsing
-  todoist_project: "Productivity Tools"
+  todoist_project: "flow"
 
 breaktime:
   name: Break Time Manager
   category: Flows
   directory: /home/bpeeters/breaktime
-  todoist_project: "Productivity Tools"
+  todoist_project: "flow"
 
 nvim_config:
   name: Neovim Configuration
   category: Flows
   directory: /home/bpeeters/.config/nvim
-  todoist_project: "Development Environment"
+  todoist_project: "flow"
 
 # Life Category
 social:
   name: Social Life & Relationships
   category: Life
   directory: /home/bpeeters/MEGA
-  todoist_project: "Personal Life"
+  todoist_project: "life"
 
 health:
   name: Health & Wellness
   category: Life
   directory: /home/bpeeters/MEGA
-  todoist_project: "Health & Fitness"
+  todoist_project: "life"
 
 exercise:
   name: Exercise & Fitness
   category: Life
   directory: /home/bpeeters/MEGA
-  todoist_project: "Health & Fitness"
+  todoist_project: "life"
 
 # General category project
 general:
