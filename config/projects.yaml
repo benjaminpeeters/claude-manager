@@ -3,6 +3,13 @@
 # Context files are in config/contexts/
 # Context files are specified in individual context files
 
+# General category project
+general:
+  name: General Planning
+  category: General
+  directory: /home/bpeeters/MEGA/manager/tasks/
+  todoist_project: ["flow", "work", "life", "orga"]
+
 # PIK Category
 remind:
   name: REMIND Model Development
@@ -116,9 +123,3 @@ exercise:
   directory: /home/bpeeters/MEGA
   todoist_project: "life"
 
-# General category project
-general:
-  name: General Tasks
-  category: General
-  directory: /home/bpeeters/MEGA
-  todoist_project: "Inbox"

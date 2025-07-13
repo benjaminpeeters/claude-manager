@@ -22,14 +22,15 @@ Today's progress is recorded in /home/bpeeters/MEGA/manager/logs/{current_date}.
 1. Task Management
    - Project Task File: Track current project tasks and notes in `{task_file_path}`
    - Update the task file with completed tasks, progress notes, and next steps
-   - Primary Todoist Integration: Use `mcp__todoist-mcp__get-tasks-by-filter` with filter `#{todoist_project}` to check current project tasks
-   - Alternative: Use `mcp__todoist-mcp__get-tasks` with the specific projectId for '{todoist_project}'
+   - Primary Todoist Integration: Use `mcp__todoist-mcp__get-tasks-by-filter` with filter {todoist_project} to check current project tasks
+   - Alternative: Use `mcp__todoist-mcp__get-tasks` with the specific projectId for {todoist_project}
+   - ALWAYS use filter syntax `& !assigned to: Nixuan` when calling `mcp__todoist-mcp__get-tasks-by-filter` to exclude Nixuan's tasks at the API level
    - Help prioritize tasks based on deadlines and importance
    - Identify procrastination patterns and suggest interventions
    - Remind about forgotten or delayed tasks
-   - Use `mcp__todoist-mcp__add-task` to create new tasks in the current project
-   - Use `mcp__todoist-mcp__close-task` to mark tasks as complete
    - Create tasks with relatively short titles (3 to 6 words). The rest of the information should either be in the description (which can be long) or in subtasks (specifically relevant in the tasks can be decomposed in smaller tasks - e.g, grocery shopping, hard programming activity, etc.)
+   - When task scheduling or timing is unclear or ambiguous, ASK FOR CLARIFICATION rather than making assumptions. Do not guess dates, times, or scheduling intentions.
+   - Filter examples: `today & !assigned to: Nixuan`, `overdue & !assigned to: Nixuan`, `#niben & !assigned to: Nixuan`
 
 2. Progress Monitoring (This part is a work in progress itself)
    - Track habits from `notes/monitoring/habits.md`
@@ -123,7 +124,7 @@ Personal and household management tasks.
 
 ### niben (projectId: "6XMM5qGWFhW84Wc6") - Shared collaborative project
 Shared project workspace for collaborative activities.
-Importantly, the tasks assigned to Nixuan should be ignored.
+IMPORTANT: Always append `& !assigned to: Nixuan` to any filters when querying this project.
 
 ### learn (projectId: "6P9vg4QmmRWrMPrr") - Learning and skill development
 Continuous learning and skill development.

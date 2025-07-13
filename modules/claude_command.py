@@ -76,12 +76,20 @@ def _build_system_prompt_from_template(project: Dict, project_key: str = None) -
     # Get current date for daily log
     current_date = datetime.now().strftime('%Y-%m-%d')
     
+    # Handle todoist_project - can be string or array
+    todoist_project_raw = project.get('todoist_project', 'Inbox')
+    if isinstance(todoist_project_raw, list):
+        # For arrays, join with comma for display and create multiple filter instructions
+        todoist_project = ', '.join(todoist_project_raw)
+    else:
+        todoist_project = todoist_project_raw
+    
     # Fill template with project data
     return template.format(
         project_name=project['name'],
         category=project.get('category', 'General'),
         directory=project['directory'],
-        todoist_project=project.get('todoist_project', 'Inbox'),
+        todoist_project=todoist_project,
         task_file_path=task_file_path,
         current_date=current_date,
         context_content=context_content
